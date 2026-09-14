@@ -19,9 +19,11 @@ namespace SourceAFIS.Engine.Primitives
         class NoDefaultConstructor : ICreatorMapping
         {
             public IReadOnlyCollection<RawString> MemberNames => null;
+            public IReadOnlyCollection<int> MemberIndexes => null;
 
             public void Initialize() { }
             public object CreateInstance(Dictionary<RawString, object> values) => throw new NotImplementedException();
+            public object CreateInstance(Dictionary<int, object> values) => throw new NotImplementedException();
         }
 
         // Conventions consistent with Java.

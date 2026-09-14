@@ -6,8 +6,21 @@ using SourceAFIS.Engine.Primitives;
 
 namespace SourceAFIS.Engine.Transparency
 {
-    record ConsistentSkeleton(int Width, int Height, List<IntPoint> Minutiae, List<ConsistentSkeletonRidge> Ridges)
+    class ConsistentSkeleton
     {
+        public readonly int Width;
+        public readonly int Height;
+        public readonly List<IntPoint> Minutiae;
+        public readonly List<ConsistentSkeletonRidge> Ridges;
+
+        public ConsistentSkeleton(int width, int height, List<IntPoint> minutiae, List<ConsistentSkeletonRidge> ridges)
+        {
+            Width = width;
+            Height = height;
+            Minutiae = minutiae;
+            Ridges = ridges;
+        }
+
         public static ConsistentSkeleton Of(Skeleton skeleton)
         {
             var offsets = new Dictionary<SkeletonMinutia, int>();

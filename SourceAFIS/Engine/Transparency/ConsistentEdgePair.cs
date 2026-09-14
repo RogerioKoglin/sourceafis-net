@@ -3,8 +3,21 @@ using SourceAFIS.Engine.Matcher;
 
 namespace SourceAFIS.Engine.Transparency
 {
-    record ConsistentEdgePair(int ProbeFrom, int ProbeTo, int CandidateFrom, int CandidateTo)
+    class ConsistentEdgePair
     {
+        public readonly int ProbeFrom;
+        public readonly int ProbeTo;
+        public readonly int CandidateFrom;
+        public readonly int CandidateTo;
+
+        public ConsistentEdgePair(int probeFrom, int probeTo, int candidateFrom, int candidateTo)
+        {
+            ProbeFrom = probeFrom;
+            ProbeTo = probeTo;
+            CandidateFrom = candidateFrom;
+            CandidateTo = candidateTo;
+        }
+
         public ConsistentEdgePair(MinutiaPair pair) : this(pair.ProbeRef, pair.Probe, pair.CandidateRef, pair.Candidate) { }
     }
 }

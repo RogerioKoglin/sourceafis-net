@@ -5,7 +5,15 @@ using SourceAFIS.Engine.Primitives;
 
 namespace SourceAFIS.Engine.Templates
 {
-    record FeatureTemplate(ShortPoint Size, List<Minutia> Minutiae)
+    class FeatureTemplate
     {
+        public readonly ShortPoint Size;
+        public readonly List<Minutia> Minutiae;
+
+        public FeatureTemplate(ShortPoint size, List<Minutia> minutiae)
+        {
+            Size = size;
+            Minutiae = minutiae;
+        }
     }
 }

@@ -4,7 +4,17 @@ using SourceAFIS.Engine.Primitives;
 
 namespace SourceAFIS.Engine.Transparency
 {
-    record ConsistentSkeletonRidge(int Start, int End, IList<IntPoint> Points)
+    class ConsistentSkeletonRidge
     {
+        public readonly int Start;
+        public readonly int End;
+        public readonly IList<IntPoint> Points;
+
+        public ConsistentSkeletonRidge(int start, int end, IList<IntPoint> points)
+        {
+            Start = start;
+            End = end;
+            Points = points;
+        }
     }
 }
