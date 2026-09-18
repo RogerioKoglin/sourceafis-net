@@ -10,7 +10,8 @@ namespace SourceAFIS
             using (var stream = typeof(TestResources).Assembly.GetManifestResourceStream($"SourceAFIS.Resources.{name}"))
             {
                 var data = new byte[stream.Length];
-                stream.Read(data, 0, data.Length);
+                stream.ReadExactly(data);
+                //stream.Read(data, 0, data.Length);  //Substituido por indicação do intelliSense para ReadExactly, que é mais seguro e garante a leitura completa do stream.
                 return data;
             }
         }
