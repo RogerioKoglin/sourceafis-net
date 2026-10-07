@@ -21,7 +21,9 @@ namespace SourceAFIS.Engine.Fusion
         int MaximumMinutiae = 100,
         bool AverageReferenceMinutiae = true,
         bool RetainSupportedNovelMinutiae = true,
-        bool RetainUniqueCoverageMinutiae = true);
+        bool RetainUniqueCoverageMinutiae = true,
+        int MinimumReferenceSupport = 1,
+        double AnchoredReferenceBlend = 0);
 
     sealed record TemplateFusionResult(
         FingerprintTemplate Template,
@@ -264,7 +266,7 @@ namespace SourceAFIS.Engine.Fusion
             foreach (Group group in groups)
             {
                 FusionPoint point = OutputPosition(group, plan.Reference, options);
-                if (group.HasReference)
+                if (group.HasReference && group.Support >= options.MinimumReferenceSupport)
                     selected.Add(new(group, point, false));
                 else if (options.RetainSupportedNovelMinutiae
                     && group.Support >= options.MinimumNovelSupport)
@@ -339,6 +341,12 @@ namespace SourceAFIS.Engine.Fusion
                 throw new ArgumentOutOfRangeException(nameof(options));
             if (options.MinimumNovelSupport < 2 || options.MinimumNovelSupport > 3)
                 throw new ArgumentOutOfRangeException(nameof(options));
+            if (options.MinimumReferenceSupport < 1 || options.MinimumReferenceSupport > 3)
+                throw new ArgumentOutOfRangeException(nameof(options));
+            if (!double.IsFinite(options.AnchoredReferenceBlend)
+                || options.AnchoredReferenceBlend < 0
+                || options.AnchoredReferenceBlend > 1)
+                throw new ArgumentOutOfRangeException(nameof(options));
             if (options.MaximumMinutiae <= 0 || options.MaximumMinutiae > short.MaxValue)
                 throw new ArgumentOutOfRangeException(nameof(options));
         }
@@ -407,9 +415,12 @@ namespace SourceAFIS.Engine.Fusion
         {
             Observation anchor = group.Observations.FirstOrDefault(observation =>
                 observation.Template == reference);
-            return anchor != null && !options.AverageReferenceMinutiae
-                ? new(anchor.X, anchor.Y)
-                : Position(group);
+            FusionPoint average = Position(group);
+            if (anchor == null || options.AverageReferenceMinutiae)
+                return average;
+            return new(
+                anchor.X + options.AnchoredReferenceBlend * (average.X - anchor.X),
+                anchor.Y + options.AnchoredReferenceBlend * (average.Y - anchor.Y));
         }
 
         static float Direction(Group group)
@@ -428,9 +439,11 @@ namespace SourceAFIS.Engine.Fusion
         {
             Observation anchor = group.Observations.FirstOrDefault(observation =>
                 observation.Template == reference);
-            return anchor != null && !options.AverageReferenceMinutiae
-                ? anchor.Direction
-                : Direction(group);
+            float average = Direction(group);
+            if (anchor == null || options.AverageReferenceMinutiae)
+                return average;
+            double delta = Normalize(average - anchor.Direction + Math.PI) - Math.PI;
+            return (float)Normalize(anchor.Direction + options.AnchoredReferenceBlend * delta);
         }
 
         static MinutiaType Type(Group group, int reference)
