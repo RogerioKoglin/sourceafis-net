@@ -1,13 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <LangVersion>12.0</LangVersion>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
-    <Version>3.14.0</Version>
+    <PackageId>RogerioKoglin.SourceAFIS</PackageId>
+    <AssemblyName>SourceAFIS</AssemblyName>
+    <RootNamespace>SourceAFIS</RootNamespace>
+    <Version>3.14.0-rk.1</Version>
     <Title>SourceAFIS for .NET</Title>
-    <Authors>robertvazan</Authors>
-    <RepositoryUrl>https://github.com/robertvazan/sourceafis-net</RepositoryUrl>
-    <PackageProjectUrl>https://sourceafis.machinezoo.com/net</PackageProjectUrl>
+    <Authors>Rogerio Koglin;robertvazan</Authors>
+    <RepositoryUrl>https://github.com/RogerioKoglin/sourceafis-net</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/RogerioKoglin/sourceafis-net</PackageProjectUrl>
     <Description>Fingerprint recognition engine that takes a pair of human fingerprint images and returns their similarity score. Supports efficient 1:N search.</Description>
     <PackageTags>fingerprint; biometrics; authentication; sourceafis</PackageTags>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
@@ -24,6 +28,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Dahomey.Cbor" Version="1.27.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
   </ItemGroup>
 </Project>

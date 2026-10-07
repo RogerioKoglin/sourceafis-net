@@ -31,3 +31,4 @@ Thumbs.db
 *.nupkg
 *.snupkg
 **/[Pp]ackages/
+/SourceAFIS/sixlabors.lic
