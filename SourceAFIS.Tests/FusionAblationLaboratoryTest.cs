@@ -103,6 +103,8 @@ namespace SourceAFIS
             bool AverageReferenceMinutiae,
             bool RetainSupportedNovelMinutiae,
             bool RetainUniqueCoverageMinutiae,
+            int MinimumReferenceSupport,
+            double AnchoredReferenceBlend,
             int TrialCount,
             int StableSerializations,
             int DifferentFromReference,
@@ -204,7 +206,31 @@ namespace SourceAFIS
                     planning,
                     AverageReferenceMinutiae: false,
                     RetainSupportedNovelMinutiae: true,
-                    RetainUniqueCoverageMinutiae: true))
+                    RetainUniqueCoverageMinutiae: true)),
+                new("full-anchored-blend25", new(
+                    planning,
+                    AverageReferenceMinutiae: false,
+                    RetainSupportedNovelMinutiae: true,
+                    RetainUniqueCoverageMinutiae: true,
+                    AnchoredReferenceBlend: .25)),
+                new("full-anchored-blend50", new(
+                    planning,
+                    AverageReferenceMinutiae: false,
+                    RetainSupportedNovelMinutiae: true,
+                    RetainUniqueCoverageMinutiae: true,
+                    AnchoredReferenceBlend: .5)),
+                new("full-anchored-blend75", new(
+                    planning,
+                    AverageReferenceMinutiae: false,
+                    RetainSupportedNovelMinutiae: true,
+                    RetainUniqueCoverageMinutiae: true,
+                    AnchoredReferenceBlend: .75)),
+                new("strict-2of3-anchored", new(
+                    planning,
+                    AverageReferenceMinutiae: false,
+                    RetainSupportedNovelMinutiae: true,
+                    RetainUniqueCoverageMinutiae: false,
+                    MinimumReferenceSupport: 2))
             ];
             var totals = variants.Select(_ => new TrialTotals()).ToArray();
             Dictionary<(string Probe, string Candidate), double> baseline = BuildScoreMatrix(items);
@@ -372,6 +398,8 @@ namespace SourceAFIS
                 variant.Options.AverageReferenceMinutiae,
                 variant.Options.RetainSupportedNovelMinutiae,
                 variant.Options.RetainUniqueCoverageMinutiae,
+                variant.Options.MinimumReferenceSupport,
+                variant.Options.AnchoredReferenceBlend,
                 totals.Trials,
                 totals.StableSerializations,
                 totals.DifferentFromReference,

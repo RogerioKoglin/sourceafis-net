@@ -88,6 +88,94 @@ namespace SourceAFIS
         }
 
         [Test]
+        public void StrictTwoOfThreeModeDropsUnconfirmedReferenceMinutiae()
+        {
+            FingerprintTemplate reference = FingerprintTemplateTest.ProbeGray();
+            FingerprintTemplate matching = FingerprintTemplateTest.MatchingGray();
+            FingerprintTemplate outlier = FingerprintTemplateTest.NonmatchingGray();
+
+            TemplateFusionResult result = TemplateFuser.Fuse(
+            [
+                new(reference),
+                new(matching),
+                new(outlier)
+            ],
+            new(
+                AverageReferenceMinutiae: false,
+                RetainSupportedNovelMinutiae: false,
+                RetainUniqueCoverageMinutiae: false,
+                MinimumReferenceSupport: 2));
+            byte[] serialized = result.Template.ToByteArray();
+            var restored = new FingerprintTemplate(serialized);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.Plan.Alignments.Single(alignment => alignment.Template == 1).Accepted, Is.True);
+                Assert.That(result.Plan.Alignments.Single(alignment => alignment.Template == 2).Accepted, Is.False);
+                Assert.That(result.OutputMinutiae, Is.EqualTo(result.MergedReferenceMinutiae));
+                Assert.That(result.OutputMinutiae, Is.GreaterThan(0));
+                Assert.That(result.OutputMinutiae, Is.LessThan(result.ReferenceMinutiae));
+                Assert.That(restored.ToByteArray(), Is.EqualTo(serialized));
+            });
+        }
+
+        [Test]
+        public void PartialReferenceBlendProducesStableIntermediateTemplate()
+        {
+            FingerprintTemplate reference = FingerprintTemplateTest.ProbeGray();
+            FingerprintTemplate matching = FingerprintTemplateTest.MatchingGray();
+            FingerprintTemplate outlier = FingerprintTemplateTest.NonmatchingGray();
+            TemplateFusionInput[] inputs = [new(reference), new(matching), new(outlier)];
+
+            TemplateFusionResult anchored = TemplateFuser.Fuse(inputs, new(
+                AverageReferenceMinutiae: false,
+                RetainSupportedNovelMinutiae: true,
+                RetainUniqueCoverageMinutiae: true,
+                AnchoredReferenceBlend: 0));
+            TemplateFusionResult blended = TemplateFuser.Fuse(inputs, new(
+                AverageReferenceMinutiae: false,
+                RetainSupportedNovelMinutiae: true,
+                RetainUniqueCoverageMinutiae: true,
+                AnchoredReferenceBlend: .5));
+            byte[] serialized = blended.Template.ToByteArray();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(blended.Plan.Reference, Is.EqualTo(anchored.Plan.Reference));
+                Assert.That(blended.OutputMinutiae, Is.EqualTo(anchored.OutputMinutiae));
+                Assert.That(serialized, Is.Not.EqualTo(anchored.Template.ToByteArray()));
+                Assert.That(new FingerprintTemplate(serialized).ToByteArray(), Is.EqualTo(serialized));
+            });
+        }
+
+        [Test]
+        public void PublicFusionApiProducesStableOrdinaryTemplateAndDiagnostics()
+        {
+            FingerprintImage probe = FingerprintImageTest.ProbeGray();
+            FingerprintImage matching = FingerprintImageTest.MatchingGray();
+            FingerprintTemplateFusionInput[] inputs =
+            [
+                new(probe),
+                new(matching),
+                new(FingerprintImageTest.ProbeGray())
+            ];
+
+            FingerprintTemplateFusionResult result = FingerprintTemplateFusion.Fuse(inputs);
+            byte[] serialized = result.Template.ToByteArray();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result.ReferenceIndex, Is.InRange(0, 2));
+                Assert.That(result.Contributors, Has.Count.EqualTo(2));
+                Assert.That(result.Contributors.All(contributor => contributor.Accepted), Is.True);
+                Assert.That(result.UsedAllThreeCaptures, Is.True);
+                Assert.That(result.ReferenceMinutiae, Is.GreaterThan(0));
+                Assert.That(result.OutputMinutiae, Is.GreaterThan(0));
+                Assert.That(new FingerprintTemplate(serialized).ToByteArray(), Is.EqualTo(serialized));
+            });
+        }
+
+        [Test]
         public void RobustAlignmentRejectsGeometricOutlier()
         {
             var expected = new RigidTransform(Math.PI / 8, 14, -9);
