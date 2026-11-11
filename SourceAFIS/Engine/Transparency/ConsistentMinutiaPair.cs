@@ -2,7 +2,15 @@
 
 namespace SourceAFIS.Engine.Transparency
 {
-    record ConsistentMinutiaPair(int Probe, int Candidate)
+    class ConsistentMinutiaPair
     {
+        public readonly int Probe;
+        public readonly int Candidate;
+
+        public ConsistentMinutiaPair(int probe, int candidate)
+        {
+            Probe = probe;
+            Candidate = candidate;
+        }
     }
 }
