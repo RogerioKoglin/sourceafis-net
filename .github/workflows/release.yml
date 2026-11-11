@@ -13,6 +13,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   release:
@@ -44,11 +45,24 @@ jobs:
         run: dotnet restore SourceAFIS.sln
 
       - name: Build
-        run: >-
-          dotnet build SourceAFIS.sln
-          --configuration Release
-          --no-restore
-          -p:Version=${{ steps.package-version.outputs.value }}
+        shell: bash
+        env:
+          SIXLABORS_LICENSE: ${{ secrets.SIXLABORS_LICENSE }}
+          PACKAGE_VERSION: ${{ steps.package-version.outputs.value }}
+        run: |
+          set -euo pipefail
+          : "${SIXLABORS_LICENSE:?Configure o secret SIXLABORS_LICENSE no GitHub}"
+
+          license_file="$(mktemp "$RUNNER_TEMP/sixlabors.XXXXXX.lic")"
+          trap 'rm -f -- "$license_file"' EXIT
+          printf '%s' "$SIXLABORS_LICENSE" > "$license_file"
+          unset SIXLABORS_LICENSE
+
+          dotnet build SourceAFIS.sln \
+            --configuration Release \
+            --no-restore \
+            -p:Version="$PACKAGE_VERSION" \
+            -p:SixLaborsLicenseFile="$license_file"
 
       - name: Test
         run: dotnet test SourceAFIS.sln --configuration Release --no-build
@@ -69,16 +83,15 @@ jobs:
           path: artifacts/packages/*.nupkg
           if-no-files-found: error
 
+      - name: Obter chave temporária do NuGet
+        id: nuget-login
+        uses: NuGet/login@v1
+        with:
+          user: RogerioKoglin
+
       - name: Publish to NuGet
-        env:
-          NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
-        shell: bash
-        run: |
-          if [[ -z "$NUGET_TOKEN" ]]; then
-            echo "Configure o secret NUGET_TOKEN antes de publicar." >&2
-            exit 1
-          fi
-          dotnet nuget push artifacts/packages/*.nupkg \
-            --api-key "$NUGET_TOKEN" \
-            --source https://api.nuget.org/v3/index.json \
-            --skip-duplicate
+        run: >-
+          dotnet nuget push artifacts/packages/*.nupkg
+          --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}"
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate
